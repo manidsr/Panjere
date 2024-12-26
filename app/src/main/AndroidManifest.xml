@@ -12,9 +12,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/Theme.AppCompat.DayNight">
         <activity
-            android:name=".ItemDetailActivity"
+            android:name=".ProfileActivity"
             android:exported="false" />
-        <!-- Declare your LoginActivity -->
+        <activity
+            android:name=".ItemDetailActivity"
+            android:exported="false" /> <!-- Declare your LoginActivity -->
         <activity
             android:name=".LoginActivity"
             android:exported="true">

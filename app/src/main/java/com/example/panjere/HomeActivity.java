@@ -1,6 +1,10 @@
 package com.example.panjere;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -10,6 +14,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import java.util.List;
+
 
 import java.util.List;
 
@@ -33,11 +39,58 @@ public class HomeActivity extends AppCompatActivity {
                 .build();
 
         apiService = retrofit.create(ApiService.class);
-        fetchItems();
+
+        // Check if the intent is for user-specific posts
+        boolean isUserPosts = getIntent().getBooleanExtra("userPosts", false);
+
+        if (isUserPosts) {
+            // Retrieve the user ID from Shared Preferences
+            SharedPreferences sharedPreferences = getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE);
+            String userId = sharedPreferences.getString("userId", null);
+            fetchUserItems(userId);
+        } else {
+            fetchAllItems();
+        }
+
+
+        // Set up the Profile button click listener
+        Button profileButton = findViewById(R.id.Profile);
+        profileButton.setOnClickListener(v -> {
+        Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
+        startActivity(intent);
+        });
+        // Set up the Home button click listener
+        Button HomeButton = findViewById(R.id.Home);
+        HomeButton.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, HomeActivity.class);
+            startActivity(intent);
+        });
+
+
     }
 
-    private void fetchItems() {
+    private void fetchAllItems() {
         Call<List<Item>> call = apiService.getAllItems();
+        call.enqueue(new Callback<List<Item>>() {
+            @Override
+            public void onResponse(Call<List<Item>> call, Response<List<Item>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    itemAdapter = new ItemAdapter(response.body());
+                    recyclerView.setAdapter(itemAdapter);
+                } else {
+                    Toast.makeText(HomeActivity.this, "Failed to load items", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Item>> call, Throwable t) {
+                Toast.makeText(HomeActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void fetchUserItems(String userId) {
+        Call<List<Item>> call = apiService.getUserItems(userId);
         call.enqueue(new Callback<List<Item>>() {
             @Override
             public void onResponse(Call<List<Item>> call, Response<List<Item>> response) {
