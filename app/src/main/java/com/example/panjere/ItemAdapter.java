@@ -31,6 +31,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
 
         holder.nameTextView.setText(item.getName());
         holder.descriptionTextView.setText(item.getDescription());
+        holder.priceTextView.setText("Price: $" + String.format("%.2f", item.getPrice()));  // Format the price
 
         // Decode Base64 image and set it to ImageView
         if (item.getImageBase64() != null && !item.getImageBase64().isEmpty()) {
@@ -50,13 +51,14 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
     public static class ItemViewHolder extends RecyclerView.ViewHolder {
 
         ImageView itemImageView;
-        TextView nameTextView, descriptionTextView;
+        TextView nameTextView, descriptionTextView, priceTextView;
 
         public ItemViewHolder(View itemView) {
             super(itemView);
             itemImageView = itemView.findViewById(R.id.itemImage);
             nameTextView = itemView.findViewById(R.id.itemName);
             descriptionTextView = itemView.findViewById(R.id.itemDescription);
+            priceTextView = itemView.findViewById(R.id.itemPrice);  // Get reference to price TextView
         }
     }
 }

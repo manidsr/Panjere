@@ -16,14 +16,16 @@
             android:id="@+id/itemImage"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:src="@drawable/ic_placeholder"/>
+            android:src="@drawable/ic_placeholder"
+            android:scaleType="centerCrop"
+            android:layout_gravity="center"/>
 
-        <!-- TextViews for displaying item name and description -->
+        <!-- Vertical layout for item name, description, and price -->
         <LinearLayout
-            android:orientation="vertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp">
+            android:layout_marginStart="16dp"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/itemName"
@@ -38,6 +40,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Item Description"
+                android:textSize="14sp" />
+
+            <!-- New TextView for displaying the price -->
+            <TextView
+                android:id="@+id/itemPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="35dp"
+                android:text="Price: $0.00"
+                android:textColor="@android:color/holo_green_dark"
                 android:textSize="14sp" />
         </LinearLayout>
     </LinearLayout>

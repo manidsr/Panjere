@@ -4,7 +4,7 @@ public class Item {
     private int id;
     private String name;
     private String description;
-    private float price;
+    private float price;  // Price field
     private String image_base64;
     private String user_id;
 
