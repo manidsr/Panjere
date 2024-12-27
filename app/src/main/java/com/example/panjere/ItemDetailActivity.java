@@ -122,10 +122,16 @@ public class ItemDetailActivity extends AppCompatActivity {
             });
 
             editButton.setOnClickListener(v -> {
-                Log.d(TAG, "Edit button clicked");
-                // Handle edit action here
-                // You can start an EditItemActivity and pass the item details
+                Intent intent = new Intent(ItemDetailActivity.this, AddPostActivity.class);
+                intent.putExtra("itemId", itemId);
+                intent.putExtra("itemName", itemName);
+                intent.putExtra("itemDescription", itemDescription);
+                intent.putExtra("itemPrice", itemPrice);
+                intent.putExtra("itemImageBase64", itemImageBase64);
+
+                startActivity(intent);
             });
+
         } else {
             deleteButton.setVisibility(View.GONE);
             editButton.setVisibility(View.GONE);

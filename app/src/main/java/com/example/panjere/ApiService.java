@@ -1,22 +1,20 @@
 package com.example.panjere;
 
 import com.google.gson.JsonObject;
-
 import java.util.List;
-
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.HTTP;
 import retrofit2.http.POST;
-import retrofit2.http.Path;
-import retrofit2.http.Query;
+import retrofit2.http.PUT;
 import retrofit2.http.Multipart;
 import retrofit2.http.Part;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 import retrofit2.http.DELETE;
-import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
-
 
 public interface ApiService {
 
@@ -31,6 +29,7 @@ public interface ApiService {
 
     @GET("/items/search")
     Call<List<Item>> searchItems(@Query("keyword") String keyword);
+
     @HTTP(method = "DELETE", path = "/items/{item_id}/delete", hasBody = true)
     Call<Void> deleteItem(@Path("item_id") int itemId, @Body JsonObject userIdBody);
 
@@ -42,4 +41,23 @@ public interface ApiService {
             @Part("price") RequestBody price,
             @Part("userId") RequestBody userId,
             @Part MultipartBody.Part image);
+
+    @Multipart
+    @PUT("/items/{item_id}")
+    Call<Void> updateItemWithImage(
+            @Path("item_id") int itemId,
+            @Part("name") RequestBody name,
+            @Part("description") RequestBody description,
+            @Part("price") RequestBody price,
+            @Part("userId") RequestBody userId,
+            @Part MultipartBody.Part image);
+
+    @Multipart
+    @PUT("/items/{item_id}")
+    Call<Void> updateItem(
+            @Path("item_id") int itemId,
+            @Part("name") RequestBody name,
+            @Part("description") RequestBody description,
+            @Part("price") RequestBody price,
+            @Part("userId") RequestBody userId);
 }

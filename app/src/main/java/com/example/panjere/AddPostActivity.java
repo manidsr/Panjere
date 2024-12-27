@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
@@ -29,6 +30,7 @@ public class AddPostActivity extends AppCompatActivity {
     private ImageView itemImageView;
     private File imageFile;
     private ApiService apiService;
+    private int itemId = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +43,7 @@ public class AddPostActivity extends AppCompatActivity {
         itemImageView = findViewById(R.id.itemImageView);
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://avatft.pythonanywhere.com")  // Replace with your actual API base URL
+                .baseUrl("https://avatft.pythonanywhere.com")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -52,6 +54,26 @@ public class AddPostActivity extends AppCompatActivity {
 
         Button submitItemButton = findViewById(R.id.submitItemButton);
         submitItemButton.setOnClickListener(v -> submitItem());
+
+        // Retrieve the data passed from ItemDetailActivity
+        Intent intent = getIntent();
+        itemId = intent.getIntExtra("itemId", -1);
+        String itemNameStr = intent.getStringExtra("itemName");
+        String itemDescriptionStr = intent.getStringExtra("itemDescription");
+        float itemPriceValue = intent.getFloatExtra("itemPrice", 0);
+        String itemImageBase64 = intent.getStringExtra("itemImageBase64");
+
+        // Populate the fields with the received data
+        if (itemNameStr != null) itemName.setText(itemNameStr);
+        if (itemDescriptionStr != null) itemDescription.setText(itemDescriptionStr);
+        if (itemPriceValue != 0) itemPrice.setText(String.valueOf(itemPriceValue));
+
+        // Decode and set the image
+        if (itemImageBase64 != null && !itemImageBase64.isEmpty()) {
+            byte[] decodedString = Base64.decode(itemImageBase64, Base64.DEFAULT);
+            android.graphics.Bitmap decodedBitmap = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+            itemImageView.setImageBitmap(decodedBitmap);
+        }
     }
 
     private void selectImage() {
@@ -89,45 +111,91 @@ public class AddPostActivity extends AppCompatActivity {
         String name = itemName.getText().toString().trim();
         String description = itemDescription.getText().toString().trim();
         String price = itemPrice.getText().toString().trim();
-        // Retrieve the user ID from Shared Preferences
         SharedPreferences sharedPreferences = getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE);
         String userId = sharedPreferences.getString("userId", null);
 
-        if (name.isEmpty() || description.isEmpty() || price.isEmpty() || userId == null || userId.isEmpty() || imageFile == null) {
+        if (name.isEmpty() || description.isEmpty() || price.isEmpty() || userId == null || userId.isEmpty()) {
             Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        RequestBody nameBody = RequestBody.create(MediaType.parse("text/plain"), name);
-        RequestBody descriptionBody = RequestBody.create(MediaType.parse("text/plain"), description);
-        RequestBody priceBody = RequestBody.create(MediaType.parse("text/plain"), price);
-        RequestBody userIdBody = RequestBody.create(MediaType.parse("text/plain"), userId);
-        RequestBody imageBody = RequestBody.create(MediaType.parse("image/*"), imageFile);
-        MultipartBody.Part imagePart = MultipartBody.Part.createFormData("image", imageFile.getName(), imageBody);
+        // Check if it's an update or a new submission
+        if (itemId != -1) {
+            // Update existing item
+            RequestBody nameBody = RequestBody.create(MediaType.parse("text/plain"), name);
+            RequestBody descriptionBody = RequestBody.create(MediaType.parse("text/plain"), description);
+            RequestBody priceBody = RequestBody.create(MediaType.parse("text/plain"), price);
+            RequestBody userIdBody = RequestBody.create(MediaType.parse("text/plain"), userId);
+            MultipartBody.Part imagePart = null;
+            if (imageFile != null) {
+                RequestBody imageBody = RequestBody.create(MediaType.parse("image/*"), imageFile);
+                imagePart = MultipartBody.Part.createFormData("image", imageFile.getName(), imageBody);
+            }
 
-        Call<Void> call = apiService.uploadItem(nameBody, descriptionBody, priceBody, userIdBody, imagePart);
-        call.enqueue(new Callback<Void>() {
-            @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(AddPostActivity.this, "Item created successfully!", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(AddPostActivity.this, HomeActivity.class);
-                    startActivity(intent);
-                } else {
-                    try {
-                        Log.e("AddPostActivity", "Failed to create item: " + response.errorBody().string());
-                        Toast.makeText(AddPostActivity.this, "Failed to create item: " + response.errorBody().string(), Toast.LENGTH_SHORT).show();
-                    } catch (Exception e) {
-                        e.printStackTrace();
+            Call<Void> call;
+            if (imagePart != null) {
+                call = apiService.updateItemWithImage(itemId, nameBody, descriptionBody, priceBody, userIdBody, imagePart);
+            } else {
+                call = apiService.updateItem(itemId, nameBody, descriptionBody, priceBody, userIdBody);
+            }
+
+            call.enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(AddPostActivity.this, "Item updated successfully!", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(AddPostActivity.this, HomeActivity.class);
+                        startActivity(intent);
+                    } else {
+                        try {
+                            Log.e("AddPostActivity", "Failed to update item: " + response.errorBody().string());
+                            Toast.makeText(AddPostActivity.this, "Failed to update item: " + response.errorBody().string(), Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
-            }
 
-            @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                Log.e("AddPostActivity", "Error: " + t.getMessage(), t);
-                Toast.makeText(AddPostActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    Log.e("AddPostActivity", "Error: " + t.getMessage(), t);
+                    Toast.makeText(AddPostActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            // New item submission
+            RequestBody nameBody = RequestBody.create(MediaType.parse("text/plain"), name);
+            RequestBody descriptionBody = RequestBody.create(MediaType.parse("text/plain"), description);
+            RequestBody priceBody = RequestBody.create(MediaType.parse("text/plain"), price);
+            RequestBody userIdBody = RequestBody.create(MediaType.parse("text/plain"), userId);
+            RequestBody imageBody = RequestBody.create(MediaType.parse("image/*"), imageFile);
+            MultipartBody.Part imagePart = MultipartBody.Part.createFormData("image", imageFile.getName(), imageBody);
+
+            Call<Void> call = apiService.uploadItem(nameBody, descriptionBody, priceBody, userIdBody, imagePart);
+            call.enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(AddPostActivity.this, "Item created successfully!", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(AddPostActivity.this, HomeActivity.class);
+                        startActivity(intent);
+                    } else {
+                        try {
+                            Log.e("AddPostActivity", "Failed to create item: " + response.errorBody().string());
+                            Toast.makeText(AddPostActivity.this, "Failed to create item: " + response.errorBody().string(), Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    Log.e("AddPostActivity", "Error: " + t.getMessage(), t);
+                    Toast.makeText(AddPostActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
+
 }
