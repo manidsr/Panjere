@@ -111,7 +111,8 @@ public class AddPostActivity extends AppCompatActivity {
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
                     Toast.makeText(AddPostActivity.this, "Item created successfully!", Toast.LENGTH_SHORT).show();
-                    finish(); // Close the activity
+                    Intent intent = new Intent(AddPostActivity.this, HomeActivity.class);
+                    startActivity(intent);
                 } else {
                     try {
                         Log.e("AddPostActivity", "Failed to create item: " + response.errorBody().string());

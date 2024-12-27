@@ -1,5 +1,7 @@
 package com.example.panjere;
 
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
@@ -14,8 +16,10 @@ import java.util.List;
 public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder> {
 
     private List<Item> itemList;
+    private Context context;
 
-    public ItemAdapter(List<Item> itemList) {
+    public ItemAdapter(Context context, List<Item> itemList) {
+        this.context = context;
         this.itemList = itemList;
     }
 
@@ -41,6 +45,18 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
         } else {
             holder.itemImageView.setImageResource(R.drawable.ic_placeholder); // Use a placeholder image if no base64 data is available
         }
+
+        // Handle item click event
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, ItemDetailActivity.class);
+            intent.putExtra("itemId", item.getId());
+            intent.putExtra("itemName", item.getName());
+            intent.putExtra("itemDescription", item.getDescription());
+            intent.putExtra("itemPrice", item.getPrice());
+            intent.putExtra("itemUserId", item.getUserId());
+            intent.putExtra("itemImageBase64", item.getImageBase64());
+            context.startActivity(intent);
+        });
     }
 
     @Override

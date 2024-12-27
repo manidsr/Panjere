@@ -91,7 +91,7 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<Item>> call, Response<List<Item>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    itemAdapter = new ItemAdapter(response.body());
+                    itemAdapter = new ItemAdapter(HomeActivity.this, response.body());
                     recyclerView.setAdapter(itemAdapter);
                 } else {
                     Toast.makeText(HomeActivity.this, "Failed to load items", Toast.LENGTH_SHORT).show();
@@ -111,7 +111,7 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<Item>> call, Response<List<Item>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    itemAdapter = new ItemAdapter(response.body());
+                    itemAdapter = new ItemAdapter(HomeActivity.this, response.body());
                     recyclerView.setAdapter(itemAdapter);
                 } else {
                     Toast.makeText(HomeActivity.this, "Failed to load items", Toast.LENGTH_SHORT).show();
@@ -131,7 +131,7 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<Item>> call, Response<List<Item>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    itemAdapter = new ItemAdapter(response.body());
+                    itemAdapter = new ItemAdapter(HomeActivity.this, response.body());
                     recyclerView.setAdapter(itemAdapter);
                 } else {
                     Toast.makeText(HomeActivity.this, "Failed to load search results", Toast.LENGTH_SHORT).show();
