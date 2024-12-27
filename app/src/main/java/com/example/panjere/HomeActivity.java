@@ -65,6 +65,13 @@ public class HomeActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // Set up the Home button click listener
+        Button addPost = findViewById(R.id.addItem);
+        addPost.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, AddPostActivity.class);
+            startActivity(intent);
+        });
+
         // Set up the search functionality
         searchText = findViewById(R.id.searchText);
         Button searchButton = findViewById(R.id.searchButton);
