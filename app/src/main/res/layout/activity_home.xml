@@ -6,10 +6,10 @@
     android:layout_height="match_parent">
 
     <Button
-        android:id="@+id/Chat"
+        android:id="@+id/category"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Chat"
+        android:text="Category"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/addItem"
         app:layout_constraintHorizontal_bias="0.5"
@@ -83,7 +83,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/Home"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/Chat"
+        app:layout_constraintStart_toEndOf="@+id/category"
         app:layout_constraintTop_toBottomOf="@+id/recyclerView"
         app:layout_constraintVertical_bias="0.5" />
 

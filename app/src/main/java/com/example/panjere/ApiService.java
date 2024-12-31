@@ -30,6 +30,9 @@ public interface ApiService {
     @GET("/items/search")
     Call<List<Item>> searchItems(@Query("keyword") String keyword);
 
+    @GET("/items/search")
+    Call<List<Item>> searchItemsByCategory(@Query("category_id") int categoryId);
+
     @HTTP(method = "DELETE", path = "/items/{item_id}/delete", hasBody = true)
     Call<Void> deleteItem(@Path("item_id") int itemId, @Body JsonObject userIdBody);
 
@@ -40,6 +43,7 @@ public interface ApiService {
             @Part("description") RequestBody description,
             @Part("price") RequestBody price,
             @Part("userId") RequestBody userId,
+            @Part("categoryId") RequestBody categoryId,  // Add categoryId part
             @Part MultipartBody.Part image);
 
     @Multipart
@@ -50,6 +54,7 @@ public interface ApiService {
             @Part("description") RequestBody description,
             @Part("price") RequestBody price,
             @Part("userId") RequestBody userId,
+            @Part("categoryId") RequestBody categoryId,  // Add categoryId part
             @Part MultipartBody.Part image);
 
     @Multipart
@@ -59,5 +64,9 @@ public interface ApiService {
             @Part("name") RequestBody name,
             @Part("description") RequestBody description,
             @Part("price") RequestBody price,
-            @Part("userId") RequestBody userId);
+            @Part("userId") RequestBody userId,
+            @Part("categoryId") RequestBody categoryId);  // Add categoryId part
+
+    @GET("/categories")
+    Call<List<Category>> getCategories();
 }

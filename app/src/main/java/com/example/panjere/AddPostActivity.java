@@ -7,6 +7,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -23,6 +25,10 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
+import java.util.List;
+
 
 public class AddPostActivity extends AppCompatActivity {
 
@@ -31,6 +37,9 @@ public class AddPostActivity extends AppCompatActivity {
     private File imageFile;
     private ApiService apiService;
     private int itemId = -1;
+    private Spinner categorySpinner;
+    private List<Category> categories;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +50,7 @@ public class AddPostActivity extends AppCompatActivity {
         itemDescription = findViewById(R.id.itemDescription);
         itemPrice = findViewById(R.id.itemPrice);
         itemImageView = findViewById(R.id.itemImageView);
+        categorySpinner = findViewById(R.id.categorySpinner);  // Initialize category spinner
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://avatft.pythonanywhere.com")
@@ -48,6 +58,8 @@ public class AddPostActivity extends AppCompatActivity {
                 .build();
 
         apiService = retrofit.create(ApiService.class);
+
+        fetchCategories();  // Fetch categories from API
 
         Button uploadImageButton = findViewById(R.id.uploadImageButton);
         uploadImageButton.setOnClickListener(v -> selectImage());
@@ -62,6 +74,7 @@ public class AddPostActivity extends AppCompatActivity {
         String itemDescriptionStr = intent.getStringExtra("itemDescription");
         float itemPriceValue = intent.getFloatExtra("itemPrice", 0);
         String itemImageBase64 = intent.getStringExtra("itemImageBase64");
+        String categoryName = intent.getStringExtra("categoryName");  // Get category name
 
         // Populate the fields with the received data
         if (itemNameStr != null) itemName.setText(itemNameStr);
@@ -74,7 +87,48 @@ public class AddPostActivity extends AppCompatActivity {
             android.graphics.Bitmap decodedBitmap = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
             itemImageView.setImageBitmap(decodedBitmap);
         }
+
+        // Set the selected category once categories are loaded
+        if (categoryName != null) {
+            categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    Category selectedCategory = (Category) categorySpinner.getSelectedItem();
+                    if (selectedCategory.getName().equals(categoryName)) {
+                        categorySpinner.setSelection(position);
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                }
+            });
+        }
     }
+
+    private void fetchCategories() {
+        Call<List<Category>> call = apiService.getCategories();
+        call.enqueue(new Callback<List<Category>>() {
+            @Override
+            public void onResponse(Call<List<Category>> call, Response<List<Category>> response) {
+                if (response.isSuccessful()) {
+                    categories = response.body();
+                    ArrayAdapter<Category> adapter = new ArrayAdapter<>(AddPostActivity.this,
+                            android.R.layout.simple_spinner_item, categories);
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    categorySpinner.setAdapter(adapter);
+                } else {
+                    Toast.makeText(AddPostActivity.this, "Failed to load categories", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Category>> call, Throwable t) {
+                Toast.makeText(AddPostActivity.this, "Failed to load categories", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
 
     private void selectImage() {
         // Intent to select an image from the device
@@ -111,10 +165,12 @@ public class AddPostActivity extends AppCompatActivity {
         String name = itemName.getText().toString().trim();
         String description = itemDescription.getText().toString().trim();
         String price = itemPrice.getText().toString().trim();
+        Category selectedCategory = (Category) categorySpinner.getSelectedItem();  // Get selected category
+        String categoryId = String.valueOf(selectedCategory.getId());
         SharedPreferences sharedPreferences = getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE);
         String userId = sharedPreferences.getString("userId", null);
 
-        if (name.isEmpty() || description.isEmpty() || price.isEmpty() || userId == null || userId.isEmpty()) {
+        if (name.isEmpty() || description.isEmpty() || price.isEmpty() || categoryId.isEmpty() || userId == null || userId.isEmpty()) {
             Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -125,6 +181,7 @@ public class AddPostActivity extends AppCompatActivity {
             RequestBody nameBody = RequestBody.create(MediaType.parse("text/plain"), name);
             RequestBody descriptionBody = RequestBody.create(MediaType.parse("text/plain"), description);
             RequestBody priceBody = RequestBody.create(MediaType.parse("text/plain"), price);
+            RequestBody categoryIdBody = RequestBody.create(MediaType.parse("text/plain"), categoryId);
             RequestBody userIdBody = RequestBody.create(MediaType.parse("text/plain"), userId);
             MultipartBody.Part imagePart = null;
             if (imageFile != null) {
@@ -134,9 +191,9 @@ public class AddPostActivity extends AppCompatActivity {
 
             Call<Void> call;
             if (imagePart != null) {
-                call = apiService.updateItemWithImage(itemId, nameBody, descriptionBody, priceBody, userIdBody, imagePart);
+                call = apiService.updateItemWithImage(itemId, nameBody, descriptionBody, priceBody, userIdBody, categoryIdBody, imagePart);
             } else {
-                call = apiService.updateItem(itemId, nameBody, descriptionBody, priceBody, userIdBody);
+                call = apiService.updateItem(itemId, nameBody, descriptionBody, priceBody, userIdBody, categoryIdBody);
             }
 
             call.enqueue(new Callback<Void>() {
@@ -167,11 +224,12 @@ public class AddPostActivity extends AppCompatActivity {
             RequestBody nameBody = RequestBody.create(MediaType.parse("text/plain"), name);
             RequestBody descriptionBody = RequestBody.create(MediaType.parse("text/plain"), description);
             RequestBody priceBody = RequestBody.create(MediaType.parse("text/plain"), price);
+            RequestBody categoryIdBody = RequestBody.create(MediaType.parse("text/plain"), categoryId);
             RequestBody userIdBody = RequestBody.create(MediaType.parse("text/plain"), userId);
             RequestBody imageBody = RequestBody.create(MediaType.parse("image/*"), imageFile);
             MultipartBody.Part imagePart = MultipartBody.Part.createFormData("image", imageFile.getName(), imageBody);
 
-            Call<Void> call = apiService.uploadItem(nameBody, descriptionBody, priceBody, userIdBody, imagePart);
+            Call<Void> call = apiService.uploadItem(nameBody, descriptionBody, priceBody, userIdBody, categoryIdBody, imagePart);
             call.enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
@@ -197,5 +255,4 @@ public class AddPostActivity extends AppCompatActivity {
             });
         }
     }
-
 }
