@@ -12,6 +12,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import java.io.File;
@@ -39,7 +40,8 @@ public class AddPostActivity extends AppCompatActivity {
     private int itemId = -1;
     private Spinner categorySpinner;
     private List<Category> categories;
-
+    private TextView categoryButton, addItemButton, homeButton, profileButton, categorytxt;
+    private ImageView categoryIcon, addItemIcon, homeIcon, profileIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +53,8 @@ public class AddPostActivity extends AppCompatActivity {
         itemPrice = findViewById(R.id.itemPrice);
         itemImageView = findViewById(R.id.itemImageView);
         categorySpinner = findViewById(R.id.categorySpinner);  // Initialize category spinner
+        categorytxt = findViewById(R.id.categorytxt);
+
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://avatft.pythonanywhere.com")
@@ -75,10 +79,12 @@ public class AddPostActivity extends AppCompatActivity {
         float itemPriceValue = intent.getFloatExtra("itemPrice", 0);
         String itemImageBase64 = intent.getStringExtra("itemImageBase64");
         String categoryName = intent.getStringExtra("categoryName");  // Get category name
+        String categoryId = intent.getStringExtra("categoryId");  // Get category name
 
         // Populate the fields with the received data
         if (itemNameStr != null) itemName.setText(itemNameStr);
         if (itemDescriptionStr != null) itemDescription.setText(itemDescriptionStr);
+        if (categoryName != null) categorytxt.setText(categoryName);
         if (itemPriceValue != 0) itemPrice.setText(String.valueOf(itemPriceValue));
 
         // Decode and set the image
@@ -104,6 +110,47 @@ public class AddPostActivity extends AppCompatActivity {
                 }
             });
         }
+
+        // Set up the Profile button click listener
+
+        profileButton = findViewById(R.id.Profile);
+        profileIcon = findViewById(R.id.imageView4);
+        View.OnClickListener profileClickListener = v -> {
+            Intent profileIntent = new Intent(AddPostActivity.this, ProfileActivity.class);
+            startActivity(profileIntent);
+        };
+        profileButton.setOnClickListener(profileClickListener);
+        profileIcon.setOnClickListener(profileClickListener);
+
+        // Set up the Home button click listener
+        homeButton = findViewById(R.id.Home);
+        homeIcon = findViewById(R.id.imageView3);
+        View.OnClickListener homeClickListener = v -> {
+            Intent homeIntent = new Intent(AddPostActivity.this, HomeActivity.class);
+            startActivity(homeIntent);
+        };
+        homeButton.setOnClickListener(homeClickListener);
+        homeIcon.setOnClickListener(homeClickListener);
+
+        // Set up the Add Post button click listener
+        addItemButton = findViewById(R.id.addItem);
+        addItemIcon = findViewById(R.id.imageView2);
+        View.OnClickListener addItemClickListener = v -> {
+            Intent addPostIntent = new Intent(AddPostActivity.this, AddPostActivity.class);
+            startActivity(addPostIntent);
+        };
+        addItemButton.setOnClickListener(addItemClickListener);
+        addItemIcon.setOnClickListener(addItemClickListener);
+
+        // Set up the Category button click listener
+        categoryButton = findViewById(R.id.category);
+        categoryIcon = findViewById(R.id.imageView1);
+        View.OnClickListener categoryClickListener = v -> {
+            Intent categoryIntent = new Intent(AddPostActivity.this, CategoryActivity.class);
+            startActivity(categoryIntent);
+        };
+        categoryButton.setOnClickListener(categoryClickListener);
+        categoryIcon.setOnClickListener(categoryClickListener);
     }
 
     private void fetchCategories() {

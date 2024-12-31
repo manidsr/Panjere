@@ -55,6 +55,9 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
             intent.putExtra("itemPrice", item.getPrice());
             intent.putExtra("itemUserId", item.getUserId());
             intent.putExtra("itemImageBase64", item.getImageBase64());
+            intent.putExtra("categoryName", item.getCategoryName());
+            intent.putExtra("categoryId", item.getCategoryId());
+
             context.startActivity(intent);
         });
     }

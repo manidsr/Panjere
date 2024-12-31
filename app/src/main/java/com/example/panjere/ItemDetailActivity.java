@@ -9,12 +9,16 @@ import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.gson.JsonObject;
+
+import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -27,8 +31,10 @@ public class ItemDetailActivity extends AppCompatActivity {
 
     private ImageView itemImageView;
     private TextView nameTextView, descriptionTextView, priceTextView;
-    private Button deleteButton, editButton, startChatButton;
+    private Button deleteButton, editButton;
     private ApiService apiService;
+    private TextView categoryButton, addItemButton, homeButton, profileButton;
+    private ImageView categoryIcon, addItemIcon, homeIcon, profileIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +47,6 @@ public class ItemDetailActivity extends AppCompatActivity {
         priceTextView = findViewById(R.id.itemPrice);
         deleteButton = findViewById(R.id.deletebtn);
         editButton = findViewById(R.id.editbtn);
-        startChatButton = findViewById(R.id.StartChat);
 
         // Initialize Retrofit
         Retrofit retrofit = new Retrofit.Builder()
@@ -51,6 +56,7 @@ public class ItemDetailActivity extends AppCompatActivity {
 
         apiService = retrofit.create(ApiService.class);
 
+
         // Get the passed item details
         int itemId = getIntent().getIntExtra("itemId", -1);
         String itemName = getIntent().getStringExtra("itemName");
@@ -58,18 +64,14 @@ public class ItemDetailActivity extends AppCompatActivity {
         float itemPrice = getIntent().getFloatExtra("itemPrice", 0);
         String itemImageBase64 = getIntent().getStringExtra("itemImageBase64");
         String itemUserId = getIntent().getStringExtra("itemUserId");
+        String categoryName = getIntent().getStringExtra("categoryName");
+        String categoryId = getIntent().getStringExtra("categoryId");  // Get category name
 
-        Log.d(TAG, "itemId: " + itemId);
-        Log.d(TAG, "itemName: " + itemName);
-        Log.d(TAG, "itemDescription: " + itemDescription);
-        Log.d(TAG, "itemPrice: " + itemPrice);
-        Log.d(TAG, "itemImageBase64: " + (itemImageBase64 != null));
-        Log.d(TAG, "itemUserId: " + itemUserId);
 
         // Set the item details to the views
         nameTextView.setText(itemName);
         descriptionTextView.setText(itemDescription);
-        priceTextView.setText("Price: $" + String.format("%.2f", itemPrice));
+        priceTextView.setText("$" + String.format("%.2f", itemPrice));
 
         // Decode Base64 image and set it to ImageView
         if (itemImageBase64 != null && !itemImageBase64.isEmpty()) {
@@ -83,8 +85,6 @@ public class ItemDetailActivity extends AppCompatActivity {
         // Retrieve the user ID from Shared Preferences
         SharedPreferences sharedPreferences = getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE);
         String userId = sharedPreferences.getString("userId", null);
-
-        Log.d(TAG, "userId from SharedPreferences: " + userId);
 
         // Show or hide the delete and edit buttons based on item ownership
         if (itemUserId != null && itemUserId.equals(userId)) {
@@ -128,6 +128,8 @@ public class ItemDetailActivity extends AppCompatActivity {
                 intent.putExtra("itemDescription", itemDescription);
                 intent.putExtra("itemPrice", itemPrice);
                 intent.putExtra("itemImageBase64", itemImageBase64);
+                intent.putExtra("categoryName", categoryName);
+                intent.putExtra("categoryId", categoryId);
 
                 startActivity(intent);
             });
@@ -136,5 +138,47 @@ public class ItemDetailActivity extends AppCompatActivity {
             deleteButton.setVisibility(View.GONE);
             editButton.setVisibility(View.GONE);
         }
+
+        // Set up the Profile button click listener
+
+        profileButton = findViewById(R.id.Profile);
+        profileIcon = findViewById(R.id.imageView4);
+        View.OnClickListener profileClickListener = v -> {
+            Intent profileIntent = new Intent(ItemDetailActivity.this, ProfileActivity.class);
+            startActivity(profileIntent);
+        };
+        profileButton.setOnClickListener(profileClickListener);
+        profileIcon.setOnClickListener(profileClickListener);
+
+        // Set up the Home button click listener
+        homeButton = findViewById(R.id.Home);
+        homeIcon = findViewById(R.id.imageView3);
+        View.OnClickListener homeClickListener = v -> {
+            Intent homeIntent = new Intent(ItemDetailActivity.this, HomeActivity.class);
+            startActivity(homeIntent);
+        };
+        homeButton.setOnClickListener(homeClickListener);
+        homeIcon.setOnClickListener(homeClickListener);
+
+        // Set up the Add Post button click listener
+        addItemButton = findViewById(R.id.addItem);
+        addItemIcon = findViewById(R.id.imageView2);
+        View.OnClickListener addItemClickListener = v -> {
+            Intent addPostIntent = new Intent(ItemDetailActivity.this, AddPostActivity.class);
+            startActivity(addPostIntent);
+        };
+        addItemButton.setOnClickListener(addItemClickListener);
+        addItemIcon.setOnClickListener(addItemClickListener);
+
+        // Set up the Category button click listener
+        categoryButton = findViewById(R.id.category);
+        categoryIcon = findViewById(R.id.imageView1);
+        View.OnClickListener categoryClickListener = v -> {
+            Intent categoryIntent = new Intent(ItemDetailActivity.this, CategoryActivity.class);
+            startActivity(categoryIntent);
+        };
+        categoryButton.setOnClickListener(categoryClickListener);
+        categoryIcon.setOnClickListener(categoryClickListener);
+
     }
 }
